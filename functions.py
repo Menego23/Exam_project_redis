@@ -1,10 +1,12 @@
 import redis
 
-# Connessione al database Redis
-db = redis.Redis()
+db = redis.Redis(
+  host='x',
+  port=00000,
+  password='password')
 
 def mostra_proposte():
-    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True)
+    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True)#La funzione db.zrevrangebyscore è un metodo di Redis utilizzato per ottenere un insieme ordinato di elementi da un set ordinato (sorted set) in base ai loro punteggi (scores) in ordine decrescente.
     print("Proposte attuali:")
     for i, (proposta, voti) in enumerate(proposte, start=1):
         proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
