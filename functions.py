@@ -107,6 +107,7 @@ if __name__ == "__main__":
         print("2. Vota una proposta")
         print("3. Mostra proposte attuali")
         print("4. Mostra top proposte")
+        print("5. Ricerca proposte")
         print("0. Esci")
         scelta = input()
 
