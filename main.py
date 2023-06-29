@@ -27,5 +27,5 @@ while True:
         case '5':
             ricerca_proposte()
             break
-        case _:
+        case 0:
             print("Scelta non valida.")
