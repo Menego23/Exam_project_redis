@@ -1,6 +1,7 @@
 from functions import *
 
 while True:
+    login()
     print()
     print("Scegli:")
     print("1. Nuova proposta")

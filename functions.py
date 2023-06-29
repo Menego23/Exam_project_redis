@@ -1,97 +1,201 @@
 import redis
+import json
+from tabulate import tabulate
+
 
 db = redis.Redis(
-  host='x',
-  port=00000,
-  password='password')
+  host='redis-17800.c55.eu-central-1-1.ec2.cloud.redislabs.com',
+  port=17800,
+  password='R0xoNRNdiq8KTklL7Y4mfzeOVq40btc4')
 
+
+def torna_al_menu():
+    scelta = input("Desideri tornare al menu principale? (s/n): ")
+    if scelta.lower() == 's':
+        main()
+    else:
+        print("Arrivederci!")
 
 ##############################################################################################################
 # VEDERE LE PROPOSTE
 ##############################################################################################################
 def mostra_proposte():
-    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True)#La funzione db.zrevrangebyscore è un metodo di Redis utilizzato per ottenere un insieme ordinato di elementi da un set ordinato (sorted set) in base ai loro punteggi (scores) in ordine decrescente.
-    print("Proposte attuali:")
-    for i, (proposta, voti) in enumerate(proposte, start=1):
-        proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
-        print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
+    proposte = db.hgetall('proposta')
 
+    print('Proposte attuali:')
+    table = []
+    for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
+        if not titolo.decode().endswith('_voti'):
+            voti_key = f'{titolo.decode()}_voti'.encode()
+            num_voti = proposte.get(voti_key, b'0').decode()
+            table.append([posizione, titolo.decode(), autori.decode(), num_voti])
+
+    print(tabulate(table, headers=['Proposta', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+    torna_al_menu()
 
 ##############################################################################################################
 # NUOVE PROOSTE
 ##############################################################################################################
 def nuova_proposta():
-    descrizione = input("Descrivi la proposta: ")
-    proponenti = input("Chi sono i proponenti? (separati da virgola): ").split(",")
-    proposta_id = db.incr('proposta_id')
-    db.hmset(f"proposta:{proposta_id}", {"descrizione": descrizione})
-    for proponente in proponenti:
-        db.sadd(f"proponenti:proposta:{proposta_id}", proponente.strip())
-    db.zadd('voti_proposte', {f"proposta:{proposta_id}": 0})
+    titolo_proposta = input('Inserisci il titolo della proposta: ')
+    autori_proposta = input('Inserisci gli autori della proposta: ')
 
+    db.hset('proposta', titolo_proposta, autori_proposta)
+    db.hset('proposta', f'{titolo_proposta}_voti', 0)
 
+    print('Proposta creata correttamente.')
+    torna_al_menu()
 
 ##############################################################################################################
 # VOTARE UNA PROPOSTA
 ##############################################################################################################
-def vota_proposta():
-    nome_studente = input("Chi sei? ")
-    mostra_proposte()
-    proposta_voto = input(
-        "Che proposta voti? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
+def vota_proposta(username):
+    proposte = db.hgetall('proposta')
+
+    print('Proposte attuali:')
+    table = []
+    for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
+        if not titolo.decode().endswith('_voti'):
+            voti_key = f'{titolo.decode()}_voti'.encode()
+            num_voti = proposte.get(voti_key, b'0').decode()
+            table.append([posizione, titolo.decode(), autori.decode(), num_voti])
+
+    print(tabulate(table, headers=['Proposta', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+
+    proposta_voto = input("Quale proposta vuoi votare? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
     if proposta_voto == '0':
-        return
+        torna_al_menu()
 
-    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True)
-    if proposta_voto.isdigit() and 1 <= int(proposta_voto) <= len(proposte):
-        proposta = proposte[int(proposta_voto) - 1]
-        proposta_id = proposta[0].decode()
+    proposta_voto = int(proposta_voto)
+    if proposta_voto < 1 or proposta_voto > len(proposte):
+        print('Scelta non valida.')
+        torna_al_menu()
 
-        if not db.sismember(f"votanti:{proposta_id}", nome_studente):
-            db.sadd(f"votanti:{proposta_id}", nome_studente)
-            db.zincrby('voti_proposte', 1, proposta_id)
-            print("Voto registrato!")
-        else:
-            print("Hai già votato questa proposta.")
+    proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
+    proposta_id = proposta_selezionata.decode()
+    titolo_proposta = proposte[proposta_selezionata].decode()  # Titolo della proposta selezionata
+    votanti_key = f"votanti:{proposta_id}"
+
+    if not db.sismember(votanti_key, username):
+        db.sadd(votanti_key, username)
+        db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
+        print(f"Hai votato la proposta: {proposta_id}")
+        torna_al_menu()
+
+        # Incrementa il valore del voto di uno
+        voto_attuale = int(proposte[proposta_id])
+        db.hset('proposta', proposta_id, voto_attuale + 1)
+        print("Valore del voto incrementato di uno.")
     else:
-        print("Selezione non valida.")
+        print(f"Hai già votato la proposta: {proposta_id}")
+        torna_al_menu()
 
 
 ##############################################################################################################
 # TOP PROPOSTE
 ##############################################################################################################
 def mostra_top_proposte():
-    n = input("Quante proposte vuoi visualizzare? ")
-    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True, start=0, num=int(n))
-    print(f"Le {n} proposte con il maggior numero di voti sono:")
-    for i, (proposta, voti) in enumerate(proposte, start=1):
-        proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
-        print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
+    proposte = db.hgetall('proposta')
 
+    proposte_voti = {}  # Dizionario per memorizzare il numero di voti per ogni proposta
+    for titolo, voto in proposte.items():
+        if not titolo.decode().endswith('_voti'):
+            titolo_proposta = titolo.decode()
+            try:
+                num_voti = int(voto)
+                proposte_voti[titolo_proposta] = num_voti
+            except ValueError:
+                continue
 
+    proposte_ordinate = sorted(proposte_voti.items(), key=lambda x: x[1], reverse=True)
+
+    print('Proposte attuali (ordine decrescente di voti):')
+    
+    table = []
+    for posizione, (titolo, num_voti) in enumerate(proposte_ordinate, start=1):
+        autori_key = f'{titolo}_autori'.encode()
+        autori = proposte.get(autori_key, b'').decode()
+        table.append([posizione, titolo, autori, num_voti])
+
+    print(tabulate(table, headers=['Posizione', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+
+    torna_al_menu()
 
 
 ##############################################################################################################
 # RICERCA PROPOSTE
 ##############################################################################################################
 def ricerca_proposte():
-    parola_chiave = input("Inserisci una parola chiave per la ricerca: ")
-    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True)
-    
-    proposte_filtrate = []
-    for proposta, voti in proposte:
-        proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
-        descrizione = db.hget(f"proposta:{proposta}", "descrizione").decode()
-        if parola_chiave.lower() in descrizione.lower() or parola_chiave.lower() in proponenti.lower():
-            proposte_filtrate.append((proposta, voti))
-    
-    if proposte_filtrate:
-        print("Risultati della ricerca:")
-        for i, (proposta, voti) in enumerate(proposte_filtrate, start=1):
-            proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
-            print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
+    mostra_proposte()
+
+    proposta_voto = input("Quale proposta vuoi votare? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
+    if proposta_voto == '0':
+        return
+
+    proposte = db.hgetall('proposta')
+    proposta_voto = int(proposta_voto)
+    if proposta_voto < 1 or proposta_voto > len(proposte):
+        print('Scelta non valida.')
+        return
+
+    proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
+    proposta_id = proposta_selezionata.decode()
+    votanti_key = f"votanti:{proposta_id}"
+
+    if not db.sismember(votanti_key, username):
+        db.sadd(votanti_key, username)
+        db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
+        print("Voto registrato!")
+
+        # Verifica se la chiave proposta_id esiste nel dizionario proposte
+        if proposta_id in proposte:
+            voto_attuale = int(proposte[proposta_id])
+            db.hset('proposta', proposta_id, voto_attuale + 1)
+            print("Valore del voto incrementato di uno.")
+        else:
+            print("La proposta selezionata non esiste.")
     else:
-        print("Nessun risultato trovato per la parola chiave inserita.")
+        print("Hai già votato questa proposta.")
+
+
+
+##############################################################################################################
+# LOG IN O SIGN IN
+##############################################################################################################
+def login():
+
+    azione = int(input('Login (0) o Sign up (1): '))
+    if azione == 1:
+        username = input('Inserisci username: ')
+        password = input('Inserisci password: ')
+        email = input('Inserisci email: ')
+
+        if db.hexists('users', username):
+            print('Username già esistente. Si prega di effettuare il login.')
+            
+        else:
+            # Creazione di un nuovo account
+            user_data = {'password': password, 'email': email}
+            user_data_str = json.dumps(user_data)  # Converti il dizionario in una stringa JSON
+            db.hset('users', username, user_data_str)
+            print('Account creato correttamente.')
+            main()
+
+    else:
+        username = input('Inserisci username: ')
+        password = input('Inserisci password: ')
+
+        if db.hexists('users', username):
+            user_data_str = db.hget('users', username)
+            user_data = json.loads(user_data_str)  # Converti la stringa JSON in un dizionario
+
+            if user_data['password'] == password:
+                main()
+            else:
+                print('Password errata. Accesso negato.')
+        else:
+            print('Account non trovato.')
+    return username
 
 
 ##############################################################################################################
@@ -99,34 +203,61 @@ def ricerca_proposte():
 ##############################################################################################################
 # è da sistemare il menu principale con la nuova funzione ricerca_proposte
 
-if __name__ == "__main__":
-    while True:
-        print()
-        print("Scegli:")
-        print("1. Nuova proposta")
-        print("2. Vota una proposta")
-        print("3. Mostra proposte attuali")
-        print("4. Mostra top proposte")
-        print("0. Esci")
-        scelta = input()
 
-        match scelta:
-            case '1':
-                nuova_proposta()
-                break
-            case '2':
-                vota_proposta()
-                break
-            case '3':
-                mostra_proposte()
-                break
-            case '4':
-                mostra_top_proposte()
-                break
-            case '5':
-                ricerca_proposte()
-                break
-            case _:
-                print("Scelta non valida.")
+def main():
+    if __name__ == "__main__":
+        while True:
+            print()
+            print("Scegli:")
+            print("1. Nuova proposta")
+            print("2. Vota una proposta")
+            print("3. Mostra proposte attuali")
+            print("4. Mostra top proposte")
+            print('5. Ricerca proposte')
+            print("0. Esci")
+            scelta = input()
 
-c= 'commit'
+            match scelta:
+                case '1':
+                    nuova_proposta()
+                    break
+                case '2':
+                    vota_proposta(username)
+                    break
+                case '3':
+                    mostra_proposte()
+                    break
+                case '4':
+                    mostra_top_proposte()
+                    break
+                case '5':
+                    ricerca_proposte()
+                    break
+                case _:
+                    break
+
+
+
+'''
+
+print('---------------------------------------------------------------------------------------------------------------------')
+print("Account utente registrati:")
+user_accounts = db.hgetall('users')
+
+for username, user_data in user_accounts.items():
+    user_data = eval(user_data)  # Converti la stringa in un dizionario
+    print(f"Username: {username.decode()}, Password: {user_data['password']}, Email: {user_data['email']}")
+
+print('---------------------------------------------------------------------------------------------------------------------')
+
+proposte = db.hgetall('proposta')
+
+print('Proposte attuali:')
+for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
+    if not titolo.decode().endswith('_voti'):
+        voti_key = f'{titolo.decode()}_voti'.encode()
+        num_voti = proposte.get(voti_key, b'0').decode()  # Decodifica il valore da byte a stringa
+        print(f'Proposta: {posizione}\nTitolo: {titolo.decode()}\nAutori: {autori.decode()}\nNumero di voti: {num_voti}\n---')
+'''
+username = input('Chi sei? ')
+login()
