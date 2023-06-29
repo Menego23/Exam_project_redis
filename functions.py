@@ -30,6 +30,10 @@ def nuova_proposta():
     db.zadd('voti_proposte', {f"proposta:{proposta_id}": 0})
 
 
+
+##############################################################################################################
+# VOTARE UNA PROPOSTA
+##############################################################################################################
 def vota_proposta():
     nome_studente = input("Chi sei? ")
     mostra_proposte()
@@ -63,3 +67,28 @@ def mostra_top_proposte():
     for i, (proposta, voti) in enumerate(proposte, start=1):
         proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
         print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
+
+
+
+
+##############################################################################################################
+# RICERCA PROPOSTE
+##############################################################################################################
+def ricerca_proposte():
+    parola_chiave = input("Inserisci una parola chiave per la ricerca: ")
+    proposte = db.zrevrangebyscore('voti_proposte', '+inf', '-inf', withscores=True)
+    
+    proposte_filtrate = []
+    for proposta, voti in proposte:
+        proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
+        descrizione = db.hget(f"proposta:{proposta}", "descrizione").decode()
+        if parola_chiave.lower() in descrizione.lower() or parola_chiave.lower() in proponenti.lower():
+            proposte_filtrate.append((proposta, voti))
+    
+    if proposte_filtrate:
+        print("Risultati della ricerca:")
+        for i, (proposta, voti) in enumerate(proposte_filtrate, start=1):
+            proponenti = ', '.join(db.smembers(f"proponenti:{proposta}"))
+            print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
+    else:
+        print("Nessun risultato trovato per la parola chiave inserita.")
