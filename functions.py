@@ -69,6 +69,7 @@ def mostra_top_proposte():
         print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
 
 
+<<<<<<< HEAD
 
 
 ##############################################################################################################
@@ -92,3 +93,29 @@ def ricerca_proposte():
             print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
     else:
         print("Nessun risultato trovato per la parola chiave inserita.")
+=======
+if __name__ == "__main__":
+    while True:
+        print()
+        print("Scegli:")
+        print("1. Nuova proposta")
+        print("2. Vota una proposta")
+        print("3. Mostra proposte attuali")
+        print("4. Mostra top proposte")
+        print("0. Esci")
+        scelta = input()
+
+        if scelta == '1':
+            nuova_proposta()
+        elif scelta == '2':
+            vota_proposta()
+        elif scelta == '3':
+            mostra_proposte()
+        elif scelta == '4':
+            mostra_top_proposte()
+        elif scelta == '0':
+            break
+        else:
+            print("Scelta non valida.")
+
+>>>>>>> 2802371c6c138c28ba01a33c287edcc3399fcc51
