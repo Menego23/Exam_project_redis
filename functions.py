@@ -110,17 +110,23 @@ if __name__ == "__main__":
         print("0. Esci")
         scelta = input()
 
-        if scelta == '1':
-            nuova_proposta()
-        elif scelta == '2':
-            vota_proposta()
-        elif scelta == '3':
-            mostra_proposte()
-        elif scelta == '4':
-            mostra_top_proposte()
-        elif scelta == '0':
-            break
-        else:
-            print("Scelta non valida.")
+        match scelta:
+            case '1':
+                nuova_proposta()
+                break
+            case '2':
+                vota_proposta()
+                break
+            case '3':
+                mostra_proposte()
+                break
+            case '4':
+                mostra_top_proposte()
+                break
+            case '5':
+                ricerca_proposte()
+                break
+            case _:
+                print("Scelta non valida.")
 
 c= 'commit'
