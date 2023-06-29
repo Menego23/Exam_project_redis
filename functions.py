@@ -126,7 +126,8 @@ if __name__ == "__main__":
             case '5':
                 ricerca_proposte()
                 break
-            case _:
+            case 0:
                 print("Scelta non valida.")
+                break
 
 c= 'commit'
