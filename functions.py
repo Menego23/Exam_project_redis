@@ -69,7 +69,6 @@ def mostra_top_proposte():
         print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
 
 
-<<<<<<< HEAD
 
 
 ##############################################################################################################
@@ -93,7 +92,13 @@ def ricerca_proposte():
             print(f"{i}. {proposta.decode()} ({proponenti}): {int(voti)} voti")
     else:
         print("Nessun risultato trovato per la parola chiave inserita.")
-=======
+
+
+##############################################################################################################
+# MENU PRINCIPALE
+##############################################################################################################
+# è da sistemare il menu principale con la nuova funzione ricerca_proposte
+
 if __name__ == "__main__":
     while True:
         print()
@@ -118,4 +123,3 @@ if __name__ == "__main__":
         else:
             print("Scelta non valida.")
 
->>>>>>> 2802371c6c138c28ba01a33c287edcc3399fcc51
