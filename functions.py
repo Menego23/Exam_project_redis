@@ -54,6 +54,7 @@ def nuova_proposta():
 # VOTARE UNA PROPOSTA
 ##############################################################################################################
 def vota_proposta(username):
+    proposte = db.hgetall('proposta')
     mostra_proposte()
 
     proposta_voto = input("Quale proposta vuoi votare? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
