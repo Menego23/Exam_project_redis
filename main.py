@@ -9,7 +9,7 @@ while True:
     print("Seleziona un'opzione:")
     print("1. Nuova proposta")
     print("2. Vota una proposta")
-    print("3. Mostra proposte attuali")
+    print("3. Mostra proposte")
     print("4. Mostra top proposte")
     print('5. Ricerca proposte')
     print("0. Esci")
@@ -25,7 +25,6 @@ while True:
             torna_al_menu()
         elif scelta == '4':
             mostra_top_proposte()
-            torna_al_menu()
         elif scelta == '5':
             ricerca_proposte(username)
         elif scelta == '0':

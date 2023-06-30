@@ -100,8 +100,6 @@ def vota_proposta(username):
 def mostra_top_proposte():
     proposte = db.hgetall('proposta')
 
-    print(proposte)
-    return
     # Dizionario per memorizzare il numero di voti per ogni proposta
     proposte_voti = proposte 
     for titolo, voto in proposte.items():
