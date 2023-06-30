@@ -1,12 +1,12 @@
 import redis
 import json
 from tabulate import tabulate
+from operator import itemgetter
+
 
 #da fixare:
-# - visualizzazione top proposte
 # - ricerca proposte
-#    - ricerca proposte, gestire l'eventualità in cui l'utente non inserisce un caBBo
-# - vota proposte non funziona correttamente
+
 r = redis.Redis(
   host='redis-12114.c293.eu-central-1-1.ec2.cloud.redislabs.com',
   port=12114,
@@ -116,6 +116,7 @@ def mostra_top_proposte(n):
         table.append([posizione, titolo, autori, num_voti])
 
     print(tabulate(table, headers=['Posizione', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+    torna_al_menu()
 
 
 ##############################################################################################################
