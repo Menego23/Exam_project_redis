@@ -15,7 +15,7 @@ while True:
     if scelta == '1':
         nuova_proposta()
     elif scelta == '2':
-        vota_proposta(username)
+        vota_proposta()
     elif scelta == '3':
         mostra_proposte()
         torna_al_menu()

@@ -54,36 +54,42 @@ def nuova_proposta():
 ##############################################################################################################
 # VOTARE UNA PROPOSTA
 ##############################################################################################################
-def vota_proposta(username):
-    proposte = db.hgetall('proposta')
-    mostra_proposte()
+def vota_proposta():
+    """
+    Funzione per votare una proposta.
+    """
+    try:
+        username = input("Chi sei? ")
+        proposte = db.hgetall('proposta')
+        mostra_proposte()
 
-    proposta_voto = input("Quale proposta vuoi votare? \n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
+        proposta_voto = input("Quale proposta vuoi votare?\n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
 
-    proposta_voto = int(proposta_voto)
-    if proposta_voto < 1 or proposta_voto > len(proposte):
-        print('Scelta non valida.')
+        proposta_voto = int(proposta_voto)
+        if proposta_voto < 1 or proposta_voto > len(proposte):
+            print('Scelta non valida.')
+            torna_al_menu()
+
+        proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
+        proposta_id = proposta_selezionata.decode()
+        titolo_proposta = proposte[proposta_selezionata].decode()  # Titolo della proposta selezionata
+        votanti_key = f"votanti:{proposta_id}"
+
+        if not db.sismember(votanti_key, username):
+            db.sadd(votanti_key, username)
+            db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
+            print(f"Hai votato la proposta: {proposta_id}")
+
+            # Incrementa il valore del voto di uno
+            voto_attuale = int(proposte[proposta_id])
+            db.hset('proposta', proposta_id, voto_attuale + 1)
+            print("Valore del voto incrementato di uno.")
+        else:
+            print(f"Hai già votato la proposta: {proposta_id}")
         torna_al_menu()
 
-    proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
-    proposta_id = proposta_selezionata.decode()
-    titolo_proposta = proposte[proposta_selezionata].decode()  # Titolo della proposta selezionata
-    votanti_key = f"votanti:{proposta_id}"
-
-    if not db.sismember(votanti_key, username):
-        db.sadd(votanti_key, username)
-        db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
-        print(f"Hai votato la proposta: {proposta_id}")
-        
-
-        # Incrementa il valore del voto di uno
-        voto_attuale = int(proposte[proposta_id])
-        db.hset('proposta', proposta_id, voto_attuale + 1)
-        print("Valore del voto incrementato di uno.")
-    else:
-        print(f"Hai già votato la proposta: {proposta_id}")
-    torna_al_menu()
-
+    except Exception as e:
+        print(f"Si è verificato un errore durante il voto della proposta: {str(e)}")
 
 ##############################################################################################################
 # TOP PROPOSTE
