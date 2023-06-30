@@ -97,33 +97,25 @@ def vota_proposta(username):
 ##############################################################################################################
 # TOP PROPOSTE
 ##############################################################################################################
-def mostra_top_proposte():
+def mostra_top_proposte(n):
     proposte = db.hgetall('proposta')
 
-    # Dizionario per memorizzare il numero di voti per ogni proposta
-    proposte_voti = proposte 
-    for titolo, voto in proposte.items():
-        if not titolo.decode().endswith('_voti'):
-            titolo_proposta = titolo.decode()
-            try:
-                num_voti = int(voto)
-                proposte_voti[titolo_proposta] = num_voti
-            except ValueError:
-                continue
-
-    proposte_ordinate = sorted(proposte_voti.items(), key=lambda x: x[1], reverse=True)
-
-    print('Proposte attuali (ordine decrescente di voti):')
-    
+    print(f'Top {n} proposte:')
     table = []
-    for posizione, (titolo, num_voti) in enumerate(proposte_ordinate, start=1):
-        autori_key = f'{titolo}_autori'.encode()
-        autori = proposte.get(autori_key, b'').decode()
+    top_proposte = []
+    for titolo, autori in proposte.items():
+        titolo_str = titolo.decode()
+        if not titolo_str.endswith('_voti'):
+            voti_key = f'{titolo_str}_voti'.encode()
+            num_voti = int(proposte.get(voti_key, b'0').decode())
+            top_proposte.append((titolo_str, num_voti))
+
+    top_proposte = sorted(top_proposte, key=lambda x: x[1], reverse=True)[:n]
+    for posizione, (titolo, num_voti) in enumerate(top_proposte, start=1):
+        autori = proposte.get(titolo.encode()).decode()
         table.append([posizione, titolo, autori, num_voti])
 
     print(tabulate(table, headers=['Posizione', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
-
-    torna_al_menu()
 
 
 ##############################################################################################################

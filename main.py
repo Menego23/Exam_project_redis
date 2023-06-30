@@ -24,7 +24,7 @@ while True:
             mostra_proposte()
             torna_al_menu()
         elif scelta == '4':
-            mostra_top_proposte()
+            mostra_top_proposte(5)
         elif scelta == '5':
             ricerca_proposte(username)
         elif scelta == '0':
