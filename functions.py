@@ -125,7 +125,8 @@ def mostra_top_proposte():
 ##############################################################################################################
 def ricerca_proposte(username):
     mostra_proposte()
-
+    print("Work in progress")
+    quit()
     proposta_voto = input("Quale proposta vuoi votare? \n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
     if proposta_voto == '0':
         return
