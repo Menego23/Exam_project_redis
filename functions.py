@@ -164,8 +164,8 @@ def login():
     print("Benvenuto nel sistema di votazione di proposte di ricerca!\nseleziona tra le seguenti opzioni:")
     azione = int(input('0)Login\n1)Sign up\n '))
     if azione == 1:
-        username = input('Inserisci username: ')
-        password = input('Inserisci password: ')
+        username = input('Inserisci username: ').lower()
+        password = input('Inserisci password: ').lower()
         email = input('Inserisci email: ')
 
         if db.hexists('users', username):
@@ -180,10 +180,10 @@ def login():
             return username
 
     else:
-        username = input('Inserisci username: ')
+        username = input('Inserisci username: ').lower()
         password = input('Inserisci password: ')
 
-        if db.hexists('users', username):
+        if db.hexists('users', username.lower()):
             user_data_str = db.hget('users', username)
             user_data = json.loads(user_data_str)  # Converti la stringa JSON in un dizionario
 
