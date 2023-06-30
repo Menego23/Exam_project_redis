@@ -30,13 +30,17 @@ def mostra_proposte():
 
     print('Proposte attuali:')
     table = []
-    for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
-        if not titolo.decode().endswith('_voti'):
-            voti_key = f'{titolo.decode()}_voti'.encode()
+    posizione = 1
+    for titolo, autori in proposte.items():
+        titolo_str = titolo.decode()
+        if not titolo_str.endswith('_voti'):
+            voti_key = f'{titolo_str}_voti'.encode()
             num_voti = proposte.get(voti_key, b'0').decode()
-            table.append([posizione, titolo.decode(), autori.decode(), num_voti])
+            table.append([posizione, titolo_str, autori.decode(), num_voti])
+            posizione += 1
 
     print(tabulate(table, headers=['Proposta', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+
 
 ##############################################################################################################
 # NUOVE PROOSTE
