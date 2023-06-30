@@ -1,5 +1,6 @@
 from functions import *
 
+username = login()
 while True:
     print()
     print("Seleziona un'opzione:")
@@ -14,12 +15,13 @@ while True:
     if scelta == '1':
         nuova_proposta()
     elif scelta == '2':
-        vota_proposta()
+        vota_proposta(username)
     elif scelta == '3':
         mostra_proposte()
     elif scelta == '4':
         mostra_top_proposte()
+        torna_al_menu()
     elif scelta == '5':
-        ricerca_proposte()
+        ricerca_proposte(username)
     else:
         print("Scelta non valida.")

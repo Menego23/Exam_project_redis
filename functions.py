@@ -2,6 +2,10 @@ import redis
 import json
 from tabulate import tabulate
 
+#da fixare:
+# - visualizzazione top proposte
+# - ricerca proposte
+
 
 db = redis.Redis(
   host='redis-17800.c55.eu-central-1-1.ec2.cloud.redislabs.com',
@@ -12,9 +16,10 @@ db = redis.Redis(
 def torna_al_menu():
     scelta = input("Desideri tornare al menu principale? (s/n): ")
     if scelta.lower() == 's':
-        main()
+        return
     else:
         print("Arrivederci!")
+        exit()
 
 ##############################################################################################################
 # VEDERE LE PROPOSTE
@@ -31,7 +36,6 @@ def mostra_proposte():
             table.append([posizione, titolo.decode(), autori.decode(), num_voti])
 
     print(tabulate(table, headers=['Proposta', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
-    torna_al_menu()
 
 ##############################################################################################################
 # NUOVE PROOSTE
@@ -50,17 +54,7 @@ def nuova_proposta():
 # VOTARE UNA PROPOSTA
 ##############################################################################################################
 def vota_proposta(username):
-    proposte = db.hgetall('proposta')
-
-    print('Proposte attuali:')
-    table = []
-    for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
-        if not titolo.decode().endswith('_voti'):
-            voti_key = f'{titolo.decode()}_voti'.encode()
-            num_voti = proposte.get(voti_key, b'0').decode()
-            table.append([posizione, titolo.decode(), autori.decode(), num_voti])
-
-    print(tabulate(table, headers=['Proposta', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+    mostra_proposte()
 
     proposta_voto = input("Quale proposta vuoi votare? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
     if proposta_voto == '0':
@@ -125,10 +119,10 @@ def mostra_top_proposte():
 ##############################################################################################################
 # RICERCA PROPOSTE
 ##############################################################################################################
-def ricerca_proposte():
+def ricerca_proposte(username):
     mostra_proposte()
 
-    proposta_voto = input("Quale proposta vuoi votare? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
+    proposta_voto = input("Quale proposta vuoi votare? \n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
     if proposta_voto == '0':
         return
 
@@ -163,8 +157,8 @@ def ricerca_proposte():
 # LOG IN O SIGN IN
 ##############################################################################################################
 def login():
-
-    azione = int(input('Login (0) o Sign up (1): '))
+    print("Benvenuto nel sistema di votazione di proposte di ricerca!\nseleziona tra le seguenti opzioni:")
+    azione = int(input('0)Login\n1)Sign up\n '))
     if azione == 1:
         username = input('Inserisci username: ')
         password = input('Inserisci password: ')
@@ -179,7 +173,7 @@ def login():
             user_data_str = json.dumps(user_data)  # Converti il dizionario in una stringa JSON
             db.hset('users', username, user_data_str)
             print('Account creato correttamente.')
-            main()
+            return
 
     else:
         username = input('Inserisci username: ')
@@ -190,52 +184,13 @@ def login():
             user_data = json.loads(user_data_str)  # Converti la stringa JSON in un dizionario
 
             if user_data['password'] == password:
-                main()
+                print('Accesso effettuato correttamente.')
             else:
                 print('Password errata. Accesso negato.')
+                quit()
         else:
             print('Account non trovato.')
     return username
-
-
-##############################################################################################################
-# MENU PRINCIPALE
-##############################################################################################################
-# è da sistemare il menu principale con la nuova funzione ricerca_proposte
-
-
-def main():
-    if __name__ == "__main__":
-        while True:
-            print()
-            print("Scegli:")
-            print("1. Nuova proposta")
-            print("2. Vota una proposta")
-            print("3. Mostra proposte attuali")
-            print("4. Mostra top proposte")
-            print('5. Ricerca proposte')
-            print("0. Esci")
-            scelta = input()
-
-            match scelta:
-                case '1':
-                    nuova_proposta()
-                    break
-                case '2':
-                    vota_proposta(username)
-                    break
-                case '3':
-                    mostra_proposte()
-                    break
-                case '4':
-                    mostra_top_proposte()
-                    break
-                case '5':
-                    ricerca_proposte()
-                    break
-                case _:
-                    break
-
 
 
 '''
@@ -259,5 +214,3 @@ for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
         num_voti = proposte.get(voti_key, b'0').decode()  # Decodifica il valore da byte a stringa
         print(f'Proposta: {posizione}\nTitolo: {titolo.decode()}\nAutori: {autori.decode()}\nNumero di voti: {num_voti}\n---')
 '''
-username = input('Chi sei? ')
-login()
