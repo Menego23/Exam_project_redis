@@ -54,12 +54,11 @@ def nuova_proposta():
 ##############################################################################################################
 # VOTARE UNA PROPOSTA
 ##############################################################################################################
-def vota_proposta():
+def vota_proposta(username):
     """
     Funzione per votare una proposta.
     """
     try:
-        username = input("Chi sei? ")
         proposte = db.hgetall('proposta')
         mostra_proposte()
 

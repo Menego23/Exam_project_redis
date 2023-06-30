@@ -19,7 +19,7 @@ while True:
         if scelta == '1':
             nuova_proposta()
         elif scelta == '2':
-            vota_proposta()
+            vota_proposta(username)
         elif scelta == '3':
             mostra_proposte()
             torna_al_menu()
@@ -30,11 +30,9 @@ while True:
             ricerca_proposte(username)
         elif scelta == '0':
             print("Arrivederci!")
-            exit()
+            quit()
         else:
             print("Scelta non valida.")
     except KeyboardInterrupt:
         print("Arrivederci!")
         exit()
-    except:
-        print("Scelta non valida.")
