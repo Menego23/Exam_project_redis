@@ -26,7 +26,7 @@ while True:
         elif scelta == '4':
             mostra_top_proposte(5)
         elif scelta == '5':
-            ricerca_proposte(username)
+            ricerca_proposte(termine= input('Inserisci il termine da cercare: '))
         elif scelta == '0':
             print("Arrivederci!")
             quit()
