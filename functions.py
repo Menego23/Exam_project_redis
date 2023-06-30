@@ -7,13 +7,12 @@ from tabulate import tabulate
 # - ricerca proposte
 #    - ricerca proposte, gestire l'eventualità in cui l'utente non inserisce un caBBo
 # - vota proposte non funziona correttamente
+r = redis.Redis(
+  host='redis-12114.c293.eu-central-1-1.ec2.cloud.redislabs.com',
+  port=12114,
+  password='3FYHn60i42mOmITHT7CnlJI4SoYyoX4P')
 
-
-db = redis.Redis(
-  host='redis-17800.c55.eu-central-1-1.ec2.cloud.redislabs.com',
-  port=17800,
-  password='R0xoNRNdiq8KTklL7Y4mfzeOVq40btc4')
-
+db = r
 
 def torna_al_menu():
     scelta = input("Desideri tornare al menu principale? (s/n): ")
