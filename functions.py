@@ -3,10 +3,6 @@ import json
 from tabulate import tabulate
 from operator import itemgetter
 
-
-#da fixare:
-# - ricerca proposte
-
 r = redis.Redis(
   host='redis-12114.c293.eu-central-1-1.ec2.cloud.redislabs.com',
   port=12114,
@@ -64,6 +60,7 @@ def vota_proposta(username):
     """
     try:
         proposte = db.hgetall('proposta')
+        proposte = {chiave: valore for chiave, valore in proposte.items() if b"_voti" not in chiave}
         mostra_proposte()
 
         proposta_voto = input("Quale proposta vuoi votare?\n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
