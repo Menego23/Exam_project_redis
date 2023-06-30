@@ -5,6 +5,8 @@ from tabulate import tabulate
 #da fixare:
 # - visualizzazione top proposte
 # - ricerca proposte
+#    - ricerca proposte, gestire l'eventualità in cui l'utente non inserisce un caBBo
+# - vota proposte non funziona correttamente
 
 
 db = redis.Redis(
@@ -92,7 +94,10 @@ def vota_proposta(username):
 def mostra_top_proposte():
     proposte = db.hgetall('proposta')
 
-    proposte_voti = {}  # Dizionario per memorizzare il numero di voti per ogni proposta
+    print(proposte)
+    return
+    # Dizionario per memorizzare il numero di voti per ogni proposta
+    proposte_voti = proposte 
     for titolo, voto in proposte.items():
         if not titolo.decode().endswith('_voti'):
             titolo_proposta = titolo.decode()

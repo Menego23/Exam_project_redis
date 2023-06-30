@@ -18,6 +18,7 @@ while True:
         vota_proposta(username)
     elif scelta == '3':
         mostra_proposte()
+        torna_al_menu()
     elif scelta == '4':
         mostra_top_proposte()
         torna_al_menu()
