@@ -24,5 +24,8 @@ while True:
         torna_al_menu()
     elif scelta == '5':
         ricerca_proposte(username)
+    elif scelta == '0':
+        print("Arrivederci!")
+        exit()
     else:
         print("Scelta non valida.")
