@@ -201,26 +201,3 @@ def login():
             print('Account non trovato.')
             quit()
     return username
-
-
-'''
-
-print('---------------------------------------------------------------------------------------------------------------------')
-print("Account utente registrati:")
-user_accounts = db.hgetall('users')
-
-for username, user_data in user_accounts.items():
-    user_data = eval(user_data)  # Converti la stringa in un dizionario
-    print(f"Username: {username.decode()}, Password: {user_data['password']}, Email: {user_data['email']}")
-
-print('---------------------------------------------------------------------------------------------------------------------')
-
-proposte = db.hgetall('proposta')
-
-print('Proposte attuali:')
-for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
-    if not titolo.decode().endswith('_voti'):
-        voti_key = f'{titolo.decode()}_voti'.encode()
-        num_voti = proposte.get(voti_key, b'0').decode()  # Decodifica il valore da byte a stringa
-        print(f'Proposta: {posizione}\nTitolo: {titolo.decode()}\nAutori: {autori.decode()}\nNumero di voti: {num_voti}\n---')
-'''
