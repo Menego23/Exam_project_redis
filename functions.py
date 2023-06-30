@@ -59,9 +59,8 @@ def vota_proposta(username):
     proposte = db.hgetall('proposta')
     mostra_proposte()
 
-    proposta_voto = input("Quale proposta vuoi votare? (inserisci il numero corrispondente o '0' per tornare al menu principale): ")
-    if proposta_voto == '0':
-        torna_al_menu()
+    proposta_voto = input("Quale proposta vuoi votare? \n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
+    torna_al_menu()
 
     proposta_voto = int(proposta_voto)
     if proposta_voto < 1 or proposta_voto > len(proposte):
