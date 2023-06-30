@@ -178,7 +178,7 @@ def login():
             user_data_str = json.dumps(user_data)  # Converti il dizionario in una stringa JSON
             db.hset('users', username, user_data_str)
             print('Account creato correttamente.')
-            return
+            return username
 
     else:
         username = input('Inserisci username: ')
