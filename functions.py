@@ -122,39 +122,25 @@ def mostra_top_proposte(n):
 ##############################################################################################################
 # RICERCA PROPOSTE
 ##############################################################################################################
-def ricerca_proposte(username):
-    mostra_proposte()
-    print("Work in progress")
-    quit()
-    proposta_voto = input("Quale proposta vuoi votare? \n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
-    if proposta_voto == '0':
-        return
 
+def ricerca_proposte(termine):
     proposte = db.hgetall('proposta')
-    proposta_voto = int(proposta_voto)
-    if proposta_voto < 1 or proposta_voto > len(proposte):
-        print('Scelta non valida.')
-        return
 
-    proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
-    proposta_id = proposta_selezionata.decode()
-    votanti_key = f"votanti:{proposta_id}"
+    risultati = []
+    for titolo, autori in proposte.items():
+        titolo_str = titolo.decode()
+        if not titolo_str.endswith('_voti') and termine.lower() in titolo_str.lower():
+            voti_key = f'{titolo_str}_voti'.encode()
+            num_voti = proposte.get(voti_key, b'0').decode()
+            risultati.append([titolo_str, autori.decode(), num_voti])
 
-    if not db.sismember(votanti_key, username):
-        db.sadd(votanti_key, username)
-        db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
-        print("Voto registrato!")
-
-        # Verifica se la chiave proposta_id esiste nel dizionario proposte
-        if proposta_id in proposte:
-            voto_attuale = int(proposte[proposta_id])
-            db.hset('proposta', proposta_id, voto_attuale + 1)
-            print("Valore del voto incrementato di uno.")
-        else:
-            print("La proposta selezionata non esiste.")
+    if risultati:
+        print(f'Risultati della ricerca per il termine "{termine}":')
+        print(tabulate(risultati, headers=['Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
     else:
-        print("Hai già votato questa proposta.")
+        print(f'Nessun risultato trovato per il termine "{termine}".')
 
+    torna_al_menu()
 
 
 ##############################################################################################################
