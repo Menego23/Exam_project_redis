@@ -1,12 +1,12 @@
 import redis
 import json
 from tabulate import tabulate
+from operator import itemgetter
+
 
 #da fixare:
-# - visualizzazione top proposte
 # - ricerca proposte
-#    - ricerca proposte, gestire l'eventualità in cui l'utente non inserisce un caBBo
-# - vota proposte non funziona correttamente
+
 r = redis.Redis(
   host='redis-12114.c293.eu-central-1-1.ec2.cloud.redislabs.com',
   port=12114,
@@ -30,13 +30,17 @@ def mostra_proposte():
 
     print('Proposte attuali:')
     table = []
-    for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
-        if not titolo.decode().endswith('_voti'):
-            voti_key = f'{titolo.decode()}_voti'.encode()
+    posizione = 1
+    for titolo, autori in proposte.items():
+        titolo_str = titolo.decode()
+        if not titolo_str.endswith('_voti'):
+            voti_key = f'{titolo_str}_voti'.encode()
             num_voti = proposte.get(voti_key, b'0').decode()
-            table.append([posizione, titolo.decode(), autori.decode(), num_voti])
+            table.append([posizione, titolo_str, autori.decode(), num_voti])
+            posizione += 1
 
     print(tabulate(table, headers=['Proposta', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
+
 
 ##############################################################################################################
 # NUOVE PROOSTE
@@ -55,67 +59,63 @@ def nuova_proposta():
 # VOTARE UNA PROPOSTA
 ##############################################################################################################
 def vota_proposta(username):
-    proposte = db.hgetall('proposta')
-    mostra_proposte()
+    """
+    Funzione per votare una proposta.
+    """
+    try:
+        proposte = db.hgetall('proposta')
+        mostra_proposte()
 
-    proposta_voto = input("Quale proposta vuoi votare? \n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
+        proposta_voto = input("Quale proposta vuoi votare?\n(inserisci il numero corrispondente o '0' per tornare al menu principale): ")
 
-    proposta_voto = int(proposta_voto)
-    if proposta_voto < 1 or proposta_voto > len(proposte):
-        print('Scelta non valida.')
+        proposta_voto = int(proposta_voto)
+        if proposta_voto < 1 or proposta_voto > len(proposte):
+            print('Scelta non valida.')
+            torna_al_menu()
+
+        proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
+        proposta_id = proposta_selezionata.decode()
+        titolo_proposta = proposte[proposta_selezionata].decode()  # Titolo della proposta selezionata
+        votanti_key = f"votanti:{proposta_id}"
+
+        if not db.sismember(votanti_key, username):
+            db.sadd(votanti_key, username)
+            db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
+            print(f"Hai votato la proposta: {proposta_id}")
+
+            # Incrementa il valore del voto di uno
+            voto_attuale = int(proposte[proposta_id])
+            db.hset('proposta', proposta_id, voto_attuale + 1)
+            print("Valore del voto incrementato di uno.")
+        else:
+            print(f"Hai già votato la proposta: {proposta_id}")
         torna_al_menu()
 
-    proposta_selezionata = list(proposte.keys())[proposta_voto - 1]
-    proposta_id = proposta_selezionata.decode()
-    titolo_proposta = proposte[proposta_selezionata].decode()  # Titolo della proposta selezionata
-    votanti_key = f"votanti:{proposta_id}"
-
-    if not db.sismember(votanti_key, username):
-        db.sadd(votanti_key, username)
-        db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
-        print(f"Hai votato la proposta: {proposta_id}")
-        
-
-        # Incrementa il valore del voto di uno
-        voto_attuale = int(proposte[proposta_id])
-        db.hset('proposta', proposta_id, voto_attuale + 1)
-        print("Valore del voto incrementato di uno.")
-    else:
-        print(f"Hai già votato la proposta: {proposta_id}")
-    torna_al_menu()
-
+    except Exception as e:
+        print(f"Si è verificato un errore durante il voto della proposta: {str(e)}")
 
 ##############################################################################################################
 # TOP PROPOSTE
 ##############################################################################################################
-def mostra_top_proposte():
+def mostra_top_proposte(n):
     proposte = db.hgetall('proposta')
 
-    print(proposte)
-    return
-    # Dizionario per memorizzare il numero di voti per ogni proposta
-    proposte_voti = proposte 
-    for titolo, voto in proposte.items():
-        if not titolo.decode().endswith('_voti'):
-            titolo_proposta = titolo.decode()
-            try:
-                num_voti = int(voto)
-                proposte_voti[titolo_proposta] = num_voti
-            except ValueError:
-                continue
-
-    proposte_ordinate = sorted(proposte_voti.items(), key=lambda x: x[1], reverse=True)
-
-    print('Proposte attuali (ordine decrescente di voti):')
-    
+    print(f'Top {n} proposte:')
     table = []
-    for posizione, (titolo, num_voti) in enumerate(proposte_ordinate, start=1):
-        autori_key = f'{titolo}_autori'.encode()
-        autori = proposte.get(autori_key, b'').decode()
+    top_proposte = []
+    for titolo, autori in proposte.items():
+        titolo_str = titolo.decode()
+        if not titolo_str.endswith('_voti'):
+            voti_key = f'{titolo_str}_voti'.encode()
+            num_voti = int(proposte.get(voti_key, b'0').decode())
+            top_proposte.append((titolo_str, num_voti))
+
+    top_proposte = sorted(top_proposte, key=lambda x: x[1], reverse=True)[:n]
+    for posizione, (titolo, num_voti) in enumerate(top_proposte, start=1):
+        autori = proposte.get(titolo.encode()).decode()
         table.append([posizione, titolo, autori, num_voti])
 
     print(tabulate(table, headers=['Posizione', 'Titolo', 'Autori', 'Numero di voti'], tablefmt='fancy_grid'))
-
     torna_al_menu()
 
 
@@ -196,26 +196,3 @@ def login():
             print('Account non trovato.')
             quit()
     return username
-
-
-'''
-
-print('---------------------------------------------------------------------------------------------------------------------')
-print("Account utente registrati:")
-user_accounts = db.hgetall('users')
-
-for username, user_data in user_accounts.items():
-    user_data = eval(user_data)  # Converti la stringa in un dizionario
-    print(f"Username: {username.decode()}, Password: {user_data['password']}, Email: {user_data['email']}")
-
-print('---------------------------------------------------------------------------------------------------------------------')
-
-proposte = db.hgetall('proposta')
-
-print('Proposte attuali:')
-for posizione, (titolo, autori) in enumerate(proposte.items(), start=1):
-    if not titolo.decode().endswith('_voti'):
-        voti_key = f'{titolo.decode()}_voti'.encode()
-        num_voti = proposte.get(voti_key, b'0').decode()  # Decodifica il valore da byte a stringa
-        print(f'Proposta: {posizione}\nTitolo: {titolo.decode()}\nAutori: {autori.decode()}\nNumero di voti: {num_voti}\n---')
-'''
