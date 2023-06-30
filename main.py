@@ -1,6 +1,9 @@
 from functions import *
-
-username = login()
+try:
+    username = login()
+except:
+    print("Errore durante il login.")
+    exit()
 while True:
     print()
     print("Seleziona un'opzione:")
@@ -10,22 +13,28 @@ while True:
     print("4. Mostra top proposte")
     print('5. Ricerca proposte')
     print("0. Esci")
-    scelta = input("\ncosa vuoi fare?")
+    try:
+        scelta = input("\ncosa vuoi fare?")
 
-    if scelta == '1':
-        nuova_proposta()
-    elif scelta == '2':
-        vota_proposta()
-    elif scelta == '3':
-        mostra_proposte()
-        torna_al_menu()
-    elif scelta == '4':
-        mostra_top_proposte()
-        torna_al_menu()
-    elif scelta == '5':
-        ricerca_proposte(username)
-    elif scelta == '0':
+        if scelta == '1':
+            nuova_proposta()
+        elif scelta == '2':
+            vota_proposta()
+        elif scelta == '3':
+            mostra_proposte()
+            torna_al_menu()
+        elif scelta == '4':
+            mostra_top_proposte()
+            torna_al_menu()
+        elif scelta == '5':
+            ricerca_proposte(username)
+        elif scelta == '0':
+            print("Arrivederci!")
+            exit()
+        else:
+            print("Scelta non valida.")
+    except KeyboardInterrupt:
         print("Arrivederci!")
         exit()
-    else:
+    except:
         print("Scelta non valida.")
