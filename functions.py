@@ -76,7 +76,7 @@ def vota_proposta(username):
         db.sadd(votanti_key, username)
         db.hincrby('proposta', f'{proposta_id}_voti', amount=1)
         print(f"Hai votato la proposta: {proposta_id}")
-        torna_al_menu()
+        
 
         # Incrementa il valore del voto di uno
         voto_attuale = int(proposte[proposta_id])
@@ -84,7 +84,7 @@ def vota_proposta(username):
         print("Valore del voto incrementato di uno.")
     else:
         print(f"Hai già votato la proposta: {proposta_id}")
-        torna_al_menu()
+    torna_al_menu()
 
 
 ##############################################################################################################
@@ -195,6 +195,7 @@ def login():
                 quit()
         else:
             print('Account non trovato.')
+            quit()
     return username
 
 
